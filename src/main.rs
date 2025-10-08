@@ -1,10 +1,16 @@
 use std::io::{self, Write};
 
 mod builtins;
+mod state;
+mod tokenizer;
+
+use state::ShellState;
 
 fn main() {
     println!("rsh - A minimalist shell for Serix kernel");
     println!("Type 'help' for available commands\n");
+
+    let mut state = ShellState::new();
 
     loop {
         print!("> ");
@@ -20,15 +26,23 @@ fn main() {
             continue;
         }
 
-        let tokens: Vec<&str> = input.split_whitespace().collect();
+        // Add to history
+        state.add_to_history(input.to_string());
+
+        // Tokenize with variable substitution
+        let tokens = tokenizer::tokenize(input, &state.variables);
         if tokens.is_empty() {
             continue;
         }
 
-        let command = tokens[0];
-        let args = &tokens[1..];
+        let command = &tokens[0];
+        let args = if tokens.len() > 1 {
+            &tokens[1..]
+        } else {
+            &[]
+        };
 
-        if !builtins::execute(command, args) {
+        if !builtins::execute(command, args, &mut state) {
             println!(
                 "Unknown command: '{}'. Type 'help' for available commands.",
                 command
