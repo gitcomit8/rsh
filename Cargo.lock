@@ -5,3 +5,10 @@ version = 4
 [[package]]
 name = "rsh"
 version = "0.1.0"
+dependencies = [
+ "ulib",
+]
+
+[[package]]
+name = "ulib"
+version = "0.1.0"

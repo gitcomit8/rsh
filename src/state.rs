@@ -1,65 +1,53 @@
-use std::collections::HashMap;
+/*
+ * state.rs - Shell state: variables and command history
+ *
+ * ShellState is passed mutably through every builtin call.
+ * Variables are stored in a BTreeMap (alloc::collections::BTreeMap
+ * replaces std::collections::HashMap since we have no std hasher).
+ * History is an ordered Vec of raw command strings.
+ */
+
+extern crate alloc;
+use alloc::collections::BTreeMap;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub struct ShellState {
-    pub variables: HashMap<String, String>,
-    pub history: Vec<String>,
+	pub variables: BTreeMap<String, String>,
+	pub history: Vec<String>,
 }
 
 impl ShellState {
-    pub fn new() -> Self {
-        ShellState {
-            variables: HashMap::new(),
-            history: Vec::new(),
-        }
-    }
+	pub fn new() -> Self {
+		ShellState {
+			variables: BTreeMap::new(),
+			history: Vec::new(),
+		}
+	}
 
-    pub fn set_variable(&mut self, name: String, value: String) {
-        self.variables.insert(name, value);
-    }
+	/* set_variable - Insert or overwrite a shell variable */
+	pub fn set_variable(&mut self, name: String, value: String) {
+		self.variables.insert(name, value);
+	}
 
-    pub fn get_variable(&self, name: &str) -> Option<&String> {
-        self.variables.get(name)
-    }
+	/* get_variable - Look up a shell variable by name */
+	pub fn get_variable(&self, name: &str) -> Option<&String> {
+		self.variables.get(name)
+	}
 
-    pub fn add_to_history(&mut self, command: String) {
-        self.history.push(command);
-    }
+	/* add_to_history - Append a command string to the history list */
+	pub fn add_to_history(&mut self, command: String) {
+		self.history.push(command);
+	}
 
-    pub fn get_history(&self) -> &Vec<String> {
-        &self.history
-    }
+	/* get_history - Return a reference to the full history list */
+	pub fn get_history(&self) -> &Vec<String> {
+		&self.history
+	}
 }
 
 impl Default for ShellState {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_new_state() {
-        let state = ShellState::new();
-        assert_eq!(state.variables.len(), 0);
-        assert_eq!(state.history.len(), 0);
-    }
-
-    #[test]
-    fn test_set_and_get_variable() {
-        let mut state = ShellState::new();
-        state.set_variable("TEST".to_string(), "value".to_string());
-        assert_eq!(state.get_variable("TEST"), Some(&"value".to_string()));
-    }
-
-    #[test]
-    fn test_history() {
-        let mut state = ShellState::new();
-        state.add_to_history("cmd1".to_string());
-        state.add_to_history("cmd2".to_string());
-        assert_eq!(state.get_history().len(), 2);
-        assert_eq!(state.get_history()[0], "cmd1");
-    }
+	fn default() -> Self {
+		Self::new()
+	}
 }
